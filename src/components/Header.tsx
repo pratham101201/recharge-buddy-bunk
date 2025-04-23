@@ -1,10 +1,16 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { CloudLightning } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Header = () => {
+  const scrollToStations = () => {
+    const stationsSection = document.getElementById('stations');
+    if (stationsSection) {
+      stationsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <header className="sticky top-0 w-full bg-white/90 backdrop-blur-sm border-b border-gray-200 z-10">
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
@@ -32,7 +38,10 @@ const Header = () => {
               Log in
             </Button>
           </Link>
-          <Button className="bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white">
+          <Button 
+            onClick={scrollToStations}
+            className="bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white"
+          >
             Find Stations
           </Button>
         </div>

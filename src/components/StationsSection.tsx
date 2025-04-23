@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { 
   BatteryCharging, 
   CloudLightning, 
   MapPin, 
   Star 
 } from 'lucide-react';
+import StationDetailsDialog from './StationDetailsDialog';
 
 const stationData = [
   {
@@ -50,6 +51,10 @@ const stationData = [
 
 const StationsSection = () => {
   const { toast } = useToast();
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [filteredStations, setFilteredStations] = useState(stationData);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleReserve = (stationId: number) => {
     const station = stationData.find(s => s.id === stationId);
@@ -64,16 +69,24 @@ const StationsSection = () => {
     
     toast({
       title: "Station Reserved",
-      description: `You have successfully reserved a spot at ${station?.name}.`,
+      description: `You have successfully reserved a spot at ${station?.name}. Please arrive within 15 minutes to claim your spot.`,
     });
   };
 
   const handleViewDetails = (stationId: number) => {
     const station = stationData.find(s => s.id === stationId);
-    toast({
-      title: "Station Details",
-      description: `Viewing details for ${station?.name}. Full details page coming soon.`,
-    });
+    setSelectedStation(station);
+    setIsDetailsOpen(true);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const filtered = stationData.filter(station => 
+      station.name.toLowerCase().includes(query.toLowerCase()) ||
+      station.address.toLowerCase().includes(query.toLowerCase()) ||
+      station.type.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredStations(filtered);
   };
 
   return (
@@ -88,13 +101,24 @@ const StationsSection = () => {
               Find and reserve charging stations in your area. Real-time availability and detailed information at your fingertips.
             </p>
           </div>
-          <Button variant="outline" className="mt-4 md:mt-0">
-            View All Stations
-          </Button>
+          <div className="mt-4 md:mt-0 flex gap-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search stations..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-evblue-500 focus:border-transparent"
+              />
+            </div>
+            <Button variant="outline" onClick={() => handleSearch("")}>
+              Clear
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stationData.map((station) => (
+          {filteredStations.map((station) => (
             <div 
               key={station.id} 
               className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
