@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   BatteryCharging, 
-  Lightning, 
+  CloudLightning, 
   MapPin, 
   Star 
 } from 'lucide-react';
@@ -99,7 +98,7 @@ const StationsSection = () => {
                     <span className="ml-1 text-sm text-gray-500">({station.reviews})</span>
                   </div>
                   <div className="flex items-center">
-                    <Lightning className="h-4 w-4 text-evblue-500" />
+                    <CloudLightning className="h-4 w-4 text-evblue-500" />
                     <span className="ml-1 text-sm">{station.type}</span>
                   </div>
                 </div>

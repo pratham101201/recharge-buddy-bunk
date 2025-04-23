@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Lightning } from 'lucide-react';
+import { CloudLightning } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -9,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Lightning className="h-6 w-6 text-evblue-400" />
+              <CloudLightning className="h-6 w-6 text-evblue-400" />
               <span className="text-xl font-bold text-white">EV Recharge</span>
             </div>
             <p className="text-sm text-gray-400 mt-2">
