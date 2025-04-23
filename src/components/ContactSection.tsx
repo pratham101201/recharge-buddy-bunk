@@ -1,13 +1,37 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const ContactSection = () => {
+  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, you'd send this to your backend
+    console.log('Form submitted:', formData);
+    toast({
+      title: "Message Sent",
+      description: "Thank you for your message. We'll get back to you soon!",
+    });
+    setFormData({ name: '', email: '', subject: '', message: '' });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
   return (
-    <section id="contact" className="py-20 bg-gray-50">
+    <section id="contact" className="py-20 bg-gray-50 scroll-mt-16">
       <div className="container px-4 md:px-6">
         <div className="grid md:grid-cols-2 gap-10">
           <div>
@@ -56,19 +80,32 @@ const ContactSection = () => {
           
           <div className="bg-white p-8 rounded-xl shadow-sm">
             <h3 className="text-xl font-semibold mb-6">Send us a message</h3>
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Name
                   </label>
-                  <Input id="name" placeholder="Your name" />
+                  <Input 
+                    id="name" 
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Your name" 
+                    required 
+                  />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                     Email
                   </label>
-                  <Input id="email" type="email" placeholder="your@email.com" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="your@email.com" 
+                    required 
+                  />
                 </div>
               </div>
               
@@ -76,17 +113,30 @@ const ContactSection = () => {
                 <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
                   Subject
                 </label>
-                <Input id="subject" placeholder="How can we help?" />
+                <Input 
+                  id="subject" 
+                  value={formData.subject}
+                  onChange={handleChange}
+                  placeholder="How can we help?" 
+                  required 
+                />
               </div>
               
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
                   Message
                 </label>
-                <Textarea id="message" placeholder="Your message..." className="h-32" />
+                <Textarea 
+                  id="message" 
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Your message..." 
+                  className="h-32" 
+                  required 
+                />
               </div>
               
-              <Button className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white">
+              <Button type="submit" className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white">
                 Send Message
               </Button>
             </form>

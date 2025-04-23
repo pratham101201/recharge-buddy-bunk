@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
 import { 
   BatteryCharging, 
   CloudLightning, 
@@ -48,8 +49,35 @@ const stationData = [
 ];
 
 const StationsSection = () => {
+  const { toast } = useToast();
+
+  const handleReserve = (stationId: number) => {
+    const station = stationData.find(s => s.id === stationId);
+    if (station?.available === 0) {
+      toast({
+        title: "Station Unavailable",
+        description: "This station is currently full. Please try another station.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Station Reserved",
+      description: `You have successfully reserved a spot at ${station?.name}.`,
+    });
+  };
+
+  const handleViewDetails = (stationId: number) => {
+    const station = stationData.find(s => s.id === stationId);
+    toast({
+      title: "Station Details",
+      description: `Viewing details for ${station?.name}. Full details page coming soon.`,
+    });
+  };
+
   return (
-    <section id="stations" className="py-20 bg-gray-50">
+    <section id="stations" className="py-20 bg-gray-50 scroll-mt-16">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
           <div>
@@ -106,11 +134,17 @@ const StationsSection = () => {
                   <span className="text-sm font-semibold">{station.price}</span>
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button className="w-full">View Details</Button>
+                  <Button 
+                    className="w-full"
+                    onClick={() => handleViewDetails(station.id)}
+                  >
+                    View Details
+                  </Button>
                   <Button 
                     variant="outline" 
                     className="flex-shrink-0"
                     disabled={station.available === 0}
+                    onClick={() => handleReserve(station.id)}
                   >
                     Reserve
                   </Button>
