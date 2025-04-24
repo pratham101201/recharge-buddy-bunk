@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { UserRound, Lock } from 'lucide-react';
+import { auth } from '@/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth'; // Import the required function
 
 const Signup = () => {
   const { toast } = useToast();
@@ -11,19 +13,30 @@ const Signup = () => {
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       toast({
         title: "Error",
         description: "Passwords do not match.",
+        variant: "destructive",
       });
       return;
     }
-    toast({
-      title: "Not Implemented",
-      description: "Please integrate Supabase for full signup functionality.",
-    });
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password); // Correct function usage
+      toast({
+        title: "Signup successful!",
+        description: "Your account has been created.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Signup failed",
+        description: error.message || "An error occurred.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -39,7 +52,7 @@ const Signup = () => {
             </p>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -52,9 +65,7 @@ const Signup = () => {
                 </div>
                 <Input
                   id="email"
-                  name="email"
                   type="email"
-                  autoComplete="email"
                   required
                   className="pl-10"
                   placeholder="you@example.com"
@@ -74,9 +85,7 @@ const Signup = () => {
                 </div>
                 <Input
                   id="password"
-                  name="password"
                   type="password"
-                  autoComplete="new-password"
                   required
                   className="pl-10"
                   placeholder="••••••••"
@@ -96,9 +105,7 @@ const Signup = () => {
                 </div>
                 <Input
                   id="confirm-password"
-                  name="confirm-password"
                   type="password"
-                  autoComplete="new-password"
                   required
                   className="pl-10"
                   placeholder="••••••••"
@@ -108,14 +115,15 @@ const Signup = () => {
               </div>
             </div>
 
-            <div>
-              <Button type="submit" className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600">
-                Sign up
-              </Button>
-            </div>
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600"
+            >
+              Sign up
+            </Button>
           </form>
         </CardContent>
-        
+
         <CardFooter className="flex flex-col space-y-4">
           <p className="text-center text-sm text-gray-600">
             Already have an account?{' '}
