@@ -1,60 +1,47 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  BatteryCharging, 
-  CloudLightning, 
-  MapPin, 
-  Star 
-} from 'lucide-react';
+import { BatteryCharging, CloudLightning, MapPin, Star } from 'lucide-react';
 import StationDetailsDialog from './StationDetailsDialog';
+import { db } from '@/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 
-const stationData = [
-  {
-    id: 1,
-    name: "City Center Station",
-    address: "123 Main St, Downtown",
-    distance: "0.8 miles away",
-    rating: 4.8,
-    reviews: 124,
-    available: 3,
-    total: 6,
-    type: "Fast Charger",
-    price: "$0.45/kWh"
-  },
-  {
-    id: 2,
-    name: "Westside Mall",
-    address: "456 Market Ave, Westside",
-    distance: "2.3 miles away",
-    rating: 4.6,
-    reviews: 89,
-    available: 0,
-    total: 4,
-    type: "Ultra Fast",
-    price: "$0.55/kWh"
-  },
-  {
-    id: 3,
-    name: "North Park Station",
-    address: "789 Park Lane, Northside",
-    distance: "3.1 miles away",
-    rating: 4.7,
-    reviews: 56,
-    available: 5,
-    total: 8,
-    type: "Standard",
-    price: "$0.35/kWh"
-  },
-];
+interface Station {
+  id: number;
+  name: string;
+  address: string;
+  distance: string;
+  rating: number;
+  reviews: number;
+  available: number;
+  total: number;
+  type: string;
+  price: string;
+  latitude: number;
+  longitude: number;
+}
 
 const StationsSection = () => {
   const { toast } = useToast();
-  const [selectedStation, setSelectedStation] = useState(null);
+  const [stationData, setStationData] = useState<Station[]>([]);
+  const [filteredStations, setFilteredStations] = useState<Station[]>([]);
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [filteredStations, setFilteredStations] = useState(stationData);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "stations"), (snapshot) => {
+      const stations: Station[] = snapshot.docs.map((doc) => ({
+        id: parseInt(doc.id),
+        ...(doc.data() as Omit<Station, "id">),
+      }));
+      setStationData(stations);
+      setFilteredStations(stations);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleReserve = (stationId: number) => {
     const station = stationData.find(s => s.id === stationId);
@@ -66,7 +53,7 @@ const StationsSection = () => {
       });
       return;
     }
-    
+
     toast({
       title: "Station Reserved",
       description: `You have successfully reserved a spot at ${station?.name}. Please arrive within 15 minutes to claim your spot.`,
@@ -74,14 +61,14 @@ const StationsSection = () => {
   };
 
   const handleViewDetails = (stationId: number) => {
-    const station = stationData.find(s => s.id === stationId);
-    setSelectedStation(station);
+    const station = filteredStations.find(s => s.id === stationId);
+    setSelectedStation(station || null);
     setIsDetailsOpen(true);
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    const filtered = stationData.filter(station => 
+    const filtered = stationData.filter(station =>
       station.name.toLowerCase().includes(query.toLowerCase()) ||
       station.address.toLowerCase().includes(query.toLowerCase()) ||
       station.type.toLowerCase().includes(query.toLowerCase())
@@ -119,8 +106,8 @@ const StationsSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStations.map((station) => (
-            <div 
-              key={station.id} 
+            <div
+              key={station.id}
               className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="h-48 bg-gradient-to-r from-blue-100 to-green-100 relative">
@@ -158,14 +145,14 @@ const StationsSection = () => {
                   <span className="text-sm font-semibold">{station.price}</span>
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button 
+                  <Button
                     className="w-full"
                     onClick={() => handleViewDetails(station.id)}
                   >
                     View Details
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="flex-shrink-0"
                     disabled={station.available === 0}
                     onClick={() => handleReserve(station.id)}
@@ -178,6 +165,13 @@ const StationsSection = () => {
           ))}
         </div>
       </div>
+      {selectedStation && (
+        <StationDetailsDialog
+          station={selectedStation}
+          open={isDetailsOpen}
+          onOpenChange={setIsDetailsOpen}
+        />
+      )}
     </section>
   );
 };
