@@ -1,110 +1,117 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Check } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
+
+const pricingPlans = [
+  {
+    name: "Basic",
+    price: "Free",
+    description: "Essential charging services for occasional users",
+    features: [
+      "Find charging stations",
+      "Basic station information",
+      "Standard charging speeds",
+      "Pay-as-you-go pricing"
+    ],
+    highlighted: false
+  },
+  {
+    name: "Premium",
+    price: "$9.99/mo",
+    description: "Enhanced features for regular EV drivers",
+    features: [
+      "All Basic features",
+      "Real-time availability",
+      "Reserved charging sessions",
+      "Priority customer support",
+      "Discounted charging rates (10% off)"
+    ],
+    highlighted: true
+  },
+  {
+    name: "Business",
+    price: "$49.99/mo",
+    description: "Fleet management and business solutions",
+    features: [
+      "All Premium features",
+      "Multiple vehicle management",
+      "Advanced reporting & analytics",
+      "Dedicated account manager",
+      "Custom billing solutions",
+      "API access for integration"
+    ],
+    highlighted: false
+  }
+];
 
 const PricingSection = () => {
-  const pricingPlans = [
-    {
-      name: "Basic",
-      price: "$0",
-      period: "Free Forever",
-      description: "Essential features for occasional EV drivers",
-      features: [
-        "Find nearby charging stations",
-        "View basic station details",
-        "Filter by connector type",
-        "Access to public stations only"
-      ],
-      buttonText: "Get Started",
-      popular: false
-    },
-    {
-      name: "Premium",
-      price: "$9.99",
-      period: "Per Month",
-      description: "Advanced features for regular EV drivers",
-      features: [
-        "Everything in Basic",
-        "Real-time station availability",
-        "Reserve charging sessions",
-        "Premium network access",
-        "Route planning with charging stops",
-        "Charging history & analytics"
-      ],
-      buttonText: "Subscribe Now",
-      popular: true
-    },
-    {
-      name: "Business",
-      price: "$29.99",
-      period: "Per Month",
-      description: "For fleet managers and business users",
-      features: [
-        "Everything in Premium",
-        "Multiple vehicle management",
-        "Team accounts & permissions",
-        "Detailed billing & reports",
-        "Priority customer support",
-        "API access"
-      ],
-      buttonText: "Contact Sales",
-      popular: false
-    }
-  ];
-
   return (
-    <section className="py-20 bg-background">
+    <section id="pricing" className="py-20 bg-white">
       <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center space-y-4 text-center">
-          <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">
-            Pricing Plans
-          </div>
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Choose Your Plan</h2>
-          <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-            Select the right plan for your EV charging needs. All plans include access to our growing network of stations.
+        <div className="text-center max-w-[800px] mx-auto mb-12">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            Simple, Transparent <span className="gradient-text">Pricing</span>
+          </h2>
+          <p className="mt-4 text-lg text-gray-500">
+            Choose the plan that works best for your electric vehicle charging needs.
           </p>
-          <Separator className="my-8" />
         </div>
-
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {pricingPlans.map((plan, index) => (
-            <Card key={index} className={`flex flex-col ${plan.popular ? 'border-primary shadow-lg relative' : ''}`}>
-              {plan.popular && (
-                <div className="absolute -top-3 left-0 right-0 mx-auto w-fit">
-                  <Badge variant="default" className="px-3 py-1 text-xs">Most Popular</Badge>
+            <div 
+              key={index} 
+              className={`
+                flex flex-col p-8 rounded-xl border 
+                ${plan.highlighted 
+                  ? 'border-evblue-200 bg-gradient-to-b from-blue-50 to-green-50 shadow-md relative overflow-hidden' 
+                  : 'border-gray-200 bg-white'
+                }
+              `}
+            >
+              {plan.highlighted && (
+                <div className="absolute top-0 right-0">
+                  <div className="bg-gradient-to-r from-evblue-500 to-evgreen-500 text-white text-xs font-semibold px-3 py-1 transform rotate-45 translate-x-5 translate-y-3">
+                    Popular
+                  </div>
                 </div>
               )}
-              <CardHeader className={plan.popular ? "pt-8" : ""}>
-                <CardTitle>{plan.name}</CardTitle>
-                <div className="flex items-baseline">
-                  <span className="text-3xl font-bold">{plan.price}</span>
-                  <span className="ml-1 text-sm text-muted-foreground">{plan.period}</span>
+              <div>
+                <h3 className="text-2xl font-bold">{plan.name}</h3>
+                <div className="mt-4 flex items-baseline">
+                  <span className="text-4xl font-extrabold">{plan.price}</span>
+                  {plan.price !== "Free" && (
+                    <span className="ml-1 text-gray-500">per month</span>
+                  )}
                 </div>
-                <CardDescription>{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <ul className="space-y-2 text-left">
-                  {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center">
-                      <Check className="mr-2 h-4 w-4 text-primary" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  variant={plan.popular ? "default" : "outline"}
-                  className="w-full"
+                <p className="mt-2 text-gray-500">{plan.description}</p>
+              </div>
+              
+              <div className="mt-8 space-y-4 flex-grow">
+                {plan.features.map((feature, i) => (
+                  <div key={i} className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <Check className={`h-5 w-5 ${plan.highlighted ? 'text-evgreen-500' : 'text-evblue-500'}`} />
+                    </div>
+                    <p className="ml-3 text-gray-700">{feature}</p>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-8">
+                <Button 
+                  className={`w-full ${
+                    plan.highlighted 
+                      ? 'bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white' 
+                      : ''
+                  }`}
+                  variant={plan.highlighted ? "default" : "outline"}
                 >
-                  {plan.buttonText}
+                  Get Started
                 </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </div>

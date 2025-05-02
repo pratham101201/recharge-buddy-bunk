@@ -1,94 +1,83 @@
 
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { CloudLightning, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  navigationMenuTriggerStyle
-} from "@/components/ui/navigation-menu";
-import { Button } from "@/components/ui/button";
-import { LogOut, User, Home, Zap } from "lucide-react";
-
-// Firebase type declaration for window.firebase
-declare global {
-  interface Window {
-    firebase: any;
-  }
-}
+import { auth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 const Header = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const scrollToStations = () => {
+    const stationsSection = document.getElementById('stations');
+    if (stationsSection) {
+      stationsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const handleLogout = async () => {
     try {
-      await window.firebase.auth().signOut();
+      await signOut(auth);
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
       navigate('/login');
     } catch (error) {
-      console.error("Error signing out: ", error);
+      console.error("Error signing out:", error);
     }
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
-      <div className="container flex h-16 items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <Zap className="h-8 w-8 text-primary" />
-          <Link to="/" className="text-xl font-bold text-primary">
-            EV<span className="text-secondary">Charge</span>
-          </Link>
-        </div>
-
-        <NavigationMenu>
-          <NavigationMenuList className="hidden md:flex space-x-2">
-            <NavigationMenuItem>
-              <Link to="/">
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  <Home className="mr-2 h-4 w-4" />
-                  Home
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 w-full bg-white/90 backdrop-blur-sm border-b border-gray-200 z-10">
+      <div className="container flex items-center justify-between h-16 px-4 md:px-6">
+        <Link to="/" className="flex items-center gap-2">
+          <CloudLightning className="h-6 w-6 text-evblue-600" />
+          <span className="text-xl font-bold gradient-text">EV Recharge</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6">
+          <a href="#about" className="text-sm font-medium text-gray-600 hover:text-evblue-600 transition-colors">
+            About
+          </a>
+          <a href="#stations" className="text-sm font-medium text-gray-600 hover:text-evblue-600 transition-colors">
+            Stations
+          </a>
+          <a href="#pricing" className="text-sm font-medium text-gray-600 hover:text-evblue-600 transition-colors">
+            Pricing
+          </a>
+          <a href="#contact" className="text-sm font-medium text-gray-600 hover:text-evblue-600 transition-colors">
+            Contact
+          </a>
+        </nav>
+        <div className="flex items-center gap-4">
           {currentUser ? (
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                <User className="h-4 w-4" />
-                <span>{currentUser.email}</span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
+              <span className="text-sm text-gray-600 hidden md:block">
+                {currentUser.email}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                <span className="hidden md:inline">Log out</span>
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/login')}
-              >
-                Login
+            <Link to="/login">
+              <Button variant="ghost" size="sm">
+                Log in
               </Button>
-              <Button 
-                variant="default" 
-                size="sm" 
-                onClick={() => navigate('/signup')}
-              >
-                Sign Up
-              </Button>
-            </div>
+            </Link>
           )}
+          <Button 
+            onClick={scrollToStations}
+            className="bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white"
+          >
+            Find Stations
+          </Button>
         </div>
       </div>
     </header>
