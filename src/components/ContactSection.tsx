@@ -1,145 +1,142 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Mail, Phone, MapPin } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Mail, MessageCircle, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const ContactSection = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd send this to your backend
-    console.log('Form submitted:', formData);
     toast({
       title: "Message Sent",
-      description: "Thank you for your message. We'll get back to you soon!",
+      description: "Thank you for your message. We'll get back to you soon.",
     });
-    setFormData({ name: '', email: '', subject: '', message: '' });
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   return (
-    <section id="contact" className="py-20 bg-gray-50 scroll-mt-16">
+    <section className="py-20 bg-background">
       <div className="container px-4 md:px-6">
-        <div className="grid md:grid-cols-2 gap-10">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Get In <span className="gradient-text">Touch</span>
-            </h2>
-            <p className="mt-4 text-lg text-gray-500 max-w-[500px]">
-              Have questions about our services or need support? Our team is here to help you with your EV charging needs.
-            </p>
+        <div className="flex flex-col items-center space-y-4 text-center">
+          <div className="inline-block rounded-lg bg-secondary/10 px-3 py-1 text-sm text-secondary">
+            <MessageCircle className="inline-block h-4 w-4 mr-1" />
+            Get In Touch
+          </div>
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Contact Us</h2>
+          <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+            Have questions about our EV charging network or services? Reach out to us and we'll get back to you as soon as possible.
+          </p>
+          <Separator className="my-8" />
+        </div>
+
+        <div className="grid gap-10 lg:grid-cols-2">
+          <Card className="bg-background/60 backdrop-blur-sm border-border/40">
+            <CardContent className="p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="text-sm font-medium">
+                      Name
+                    </label>
+                    <Input id="name" placeholder="Your name" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="text-sm font-medium">
+                      Email
+                    </label>
+                    <Input id="email" type="email" placeholder="Your email" required />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="subject" className="text-sm font-medium">
+                    Subject
+                  </label>
+                  <Input id="subject" placeholder="Subject of your message" required />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="message" className="text-sm font-medium">
+                    Message
+                  </label>
+                  <Textarea 
+                    id="message" 
+                    placeholder="Your message..." 
+                    className="min-h-[120px]" 
+                    required 
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full md:w-auto group">
+                  Send Message
+                  <Send className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+          
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-bold mb-4">Our Information</h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="rounded-full bg-primary/10 p-2">
+                    <Mail className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-medium">Email Us</h4>
+                    <p className="text-sm text-muted-foreground">
+                      <a href="mailto:info@evcharge.example" className="hover:text-primary">
+                        info@evcharge.example
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="rounded-full bg-primary/10 p-2">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-medium">Live Chat</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Available Monday to Friday, 9am - 5pm EST
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
             
-            <div className="mt-8 space-y-6">
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <Mail className="h-6 w-6 text-evblue-500" />
+            <Separator />
+            
+            <div>
+              <h3 className="text-xl font-bold mb-4">Frequently Asked Questions</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-base font-medium">How do I find charging stations?</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Use our interactive map to locate stations near you, or search by address, city, or zip code.
+                  </p>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold">Email Us</h3>
-                  <p className="mt-1 text-gray-500">support@evrecharge.com</p>
+                <div>
+                  <h4 className="text-base font-medium">What payment methods do you accept?</h4>
+                  <p className="text-sm text-muted-foreground">
+                    We accept all major credit cards, Apple Pay, Google Pay, and our own EVCharge membership cards.
+                  </p>
                 </div>
-              </div>
-              
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <Phone className="h-6 w-6 text-evblue-500" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold">Call Us</h3>
-                  <p className="mt-1 text-gray-500">+1 (555) 123-4567</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <MapPin className="h-6 w-6 text-evblue-500" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold">Visit Us</h3>
-                  <p className="mt-1 text-gray-500">
-                    123 EV Street, Green City<br />
-                    CA 94105, United States
+                <div>
+                  <h4 className="text-base font-medium">How do I report an issue with a station?</h4>
+                  <p className="text-sm text-muted-foreground">
+                    You can report issues through our mobile app or by contacting our support team directly.
                   </p>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div className="bg-white p-8 rounded-xl shadow-sm">
-            <h3 className="text-xl font-semibold mb-6">Send us a message</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
-                  </label>
-                  <Input 
-                    id="name" 
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Your name" 
-                    required 
-                  />
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="your@email.com" 
-                    required 
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject
-                </label>
-                <Input 
-                  id="subject" 
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="How can we help?" 
-                  required 
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                  Message
-                </label>
-                <Textarea 
-                  id="message" 
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Your message..." 
-                  className="h-32" 
-                  required 
-                />
-              </div>
-              
-              <Button type="submit" className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white">
-                Send Message
-              </Button>
-            </form>
           </div>
         </div>
       </div>

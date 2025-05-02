@@ -1,124 +1,137 @@
+
 import React from 'react';
-import { CloudLightning } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Separator } from "@/components/ui/separator";
+import { Facebook, Twitter, Instagram, Linkedin, Zap } from "lucide-react";
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
+  
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="container px-4 md:px-6 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
+    <footer className="bg-muted/30 py-12">
+      <div className="container px-4 md:px-6">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
+          <div className="col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <CloudLightning className="h-6 w-6 text-evblue-400" />
-              <span className="text-xl font-bold text-white">EV Recharge</span>
+              <Zap className="h-6 w-6 text-primary" />
+              <span className="text-xl font-bold text-primary">
+                EV<span className="text-secondary">Charge</span>
+              </span>
             </div>
-            <p className="text-sm text-gray-400 mt-2">
-              Powering sustainable transportation with innovative EV charging solutions.
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Connecting electric vehicle drivers with charging stations nationwide. Drive further, charge smarter.
             </p>
+            <div className="flex space-x-4 mt-6">
+              <Link to="#" className="text-muted-foreground hover:text-primary transition">
+                <Facebook className="h-5 w-5" />
+              </Link>
+              <Link to="#" className="text-muted-foreground hover:text-primary transition">
+                <Twitter className="h-5 w-5" />
+              </Link>
+              <Link to="#" className="text-muted-foreground hover:text-primary transition">
+                <Instagram className="h-5 w-5" />
+              </Link>
+              <Link to="#" className="text-muted-foreground hover:text-primary transition">
+                <Linkedin className="h-5 w-5" />
+              </Link>
+            </div>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
-            <ul className="space-y-2">
+            <h3 className="text-base font-medium mb-4">Company</h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <a href="#about" className="text-sm hover:text-evblue-300 transition-colors">
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#stations" className="text-sm hover:text-evblue-300 transition-colors">
-                  Find Stations
-                </a>
-              </li>
-              <li>
-                <a href="#pricing" className="text-sm hover:text-evblue-300 transition-colors">
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
-                  Download App
-                </a>
-              </li>
-              <li>
-                <a href="#contact" className="text-sm hover:text-evblue-300 transition-colors">
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Resources</h3>
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
-                  Help Center
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
-                  EV News
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
                   Careers
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
                   Partners
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  Press
+                </Link>
               </li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Connect</h3>
-            <ul className="space-y-2">
+            <h3 className="text-base font-medium mb-4">Resources</h3>
+            <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
-                  Facebook
-                </a>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  Blog
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
-                  Twitter
-                </a>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  Help Center
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
-                  Instagram
-                </a>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  EV Guide
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm hover:text-evblue-300 transition-colors">
-                  LinkedIn
-                </a>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  Charging Tips
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="text-base font-medium mb-4">Legal</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  Cookie Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-muted-foreground hover:text-foreground transition">
+                  GDPR
+                </Link>
               </li>
             </ul>
           </div>
         </div>
         
-        <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row justify-between items-center">
-          <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} EV Recharge. All rights reserved.
+        <Separator className="my-8" />
+        
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            &copy; {currentYear} EVCharge. All rights reserved.
           </p>
-          <div className="mt-4 sm:mt-0 flex gap-6">
-            <a href="#" className="text-xs text-gray-400 hover:text-white">
-              Privacy Policy
-            </a>
-            <a href="#" className="text-xs text-gray-400 hover:text-white">
-              Terms of Service
-            </a>
-            <a href="#" className="text-xs text-gray-400 hover:text-white">
-              Cookie Policy
-            </a>
+          <div className="flex space-x-6 text-sm text-muted-foreground">
+            <Link to="#" className="hover:text-foreground transition">
+              Privacy
+            </Link>
+            <Link to="#" className="hover:text-foreground transition">
+              Terms
+            </Link>
+            <Link to="#" className="hover:text-foreground transition">
+              Contact
+            </Link>
           </div>
         </div>
       </div>

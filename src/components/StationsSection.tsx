@@ -1,278 +1,195 @@
 
-import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { BatteryCharging, CloudLightning, MapPin, Star } from 'lucide-react';
-import StationDetailsDialog from './StationDetailsDialog';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Zap, MapPin, Info, Battery, Clock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { firestore } from '@/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
+import StationDetailsDialog from './StationDetailsDialog';
+import { Progress } from '@/components/ui/progress';
 
-interface Station {
-  id: number;
-  name: string;
-  address: string;
-  distance: string;
-  rating: number;
-  reviews: number;
-  available: number;
-  total: number;
-  type: string;
-  price: string;
-  latitude: number;
-  longitude: number;
-}
+// Mock data in case Firestore fails
+const mockStations = [
+  {
+    id: '1',
+    name: 'Downtown Fast Charging Hub',
+    location: '123 Main St, Downtown',
+    type: 'DC Fast Charging',
+    power: '150 kW',
+    status: 'Available',
+    pricePerKwh: '$0.40',
+    connectorTypes: ['CCS', 'CHAdeMO', 'Tesla'],
+    coordinates: { lat: 40.7128, lng: -74.006 },
+    amenities: ['Restrooms', 'WiFi', 'Cafe']
+  },
+  {
+    id: '2',
+    name: 'Westside Shopping Center',
+    location: '456 Market Ave, Westside',
+    type: 'Level 2',
+    power: '22 kW',
+    status: 'In Use',
+    pricePerKwh: '$0.30',
+    connectorTypes: ['Type 2', 'J1772'],
+    coordinates: { lat: 40.7138, lng: -74.016 },
+    amenities: ['Shopping', 'Restaurants', 'WiFi']
+  },
+  {
+    id: '3',
+    name: 'Eastside Park & Charge',
+    location: '789 Park Lane, Eastside',
+    type: 'DC Fast Charging',
+    power: '50 kW',
+    status: 'Available',
+    pricePerKwh: '$0.35',
+    connectorTypes: ['CCS', 'CHAdeMO'],
+    coordinates: { lat: 40.7218, lng: -73.996 },
+    amenities: ['Park', 'Restrooms']
+  }
+];
 
 const StationsSection = () => {
+  const [stations, setStations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
-  const [stationData, setStationData] = useState<Station[]>([]);
-  const [filteredStations, setFilteredStations] = useState<Station[]>([]);
-  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    // Using firestore instead of db and adding error handling
-    try {
-      const stationsRef = collection(firestore, "stations");
-      const unsubscribe = onSnapshot(stationsRef, (snapshot) => {
-        const stations: Station[] = snapshot.docs.map((doc) => ({
-          id: parseInt(doc.id) || Math.random(),
-          ...(doc.data() as Omit<Station, "id">),
-        }));
-        setStationData(stations);
-        setFilteredStations(stations);
-      }, (error) => {
-        console.error("Error fetching stations:", error);
-        // Use mock data as fallback when there's an error
-        const mockStations: Station[] = [
-          {
-            id: 1,
-            name: "Downtown EV Station",
-            address: "123 Main St, Downtown",
-            distance: "0.5 miles",
-            rating: 4.5,
-            reviews: 120,
-            available: 3,
-            total: 10,
-            type: "Fast Charging",
-            price: "$0.20/kWh",
-            latitude: 37.7749,
-            longitude: -122.4194
-          },
-          {
-            id: 2,
-            name: "Central Park Charging",
-            address: "45 Park Ave, Central District",
-            distance: "1.2 miles",
-            rating: 4.2,
-            reviews: 85,
-            available: 0,
-            total: 6,
-            type: "Standard",
-            price: "$0.15/kWh",
-            latitude: 37.7831,
-            longitude: -122.4181
-          },
-          {
-            id: 3,
-            name: "Westside Power Hub",
-            address: "789 West Blvd, Westside",
-            distance: "2.0 miles",
-            rating: 4.8,
-            reviews: 200,
-            available: 5,
-            total: 12,
-            type: "Ultra-Fast",
-            price: "$0.25/kWh",
-            latitude: 37.7822,
-            longitude: -122.4331
-          }
-        ];
-        setStationData(mockStations);
-        setFilteredStations(mockStations);
-      });
-
-      return () => unsubscribe();
-    } catch (error) {
-      console.error("Error setting up stations listener:", error);
-      // Same mock data as fallback
-      const mockStations: Station[] = [
-        {
-          id: 1,
-          name: "Downtown EV Station",
-          address: "123 Main St, Downtown",
-          distance: "0.5 miles",
-          rating: 4.5,
-          reviews: 120,
-          available: 3,
-          total: 10,
-          type: "Fast Charging",
-          price: "$0.20/kWh",
-          latitude: 37.7749,
-          longitude: -122.4194
-        },
-        {
-          id: 2,
-          name: "Central Park Charging",
-          address: "45 Park Ave, Central District",
-          distance: "1.2 miles",
-          rating: 4.2,
-          reviews: 85,
-          available: 0,
-          total: 6,
-          type: "Standard",
-          price: "$0.15/kWh",
-          latitude: 37.7831,
-          longitude: -122.4181
-        },
-        {
-          id: 3,
-          name: "Westside Power Hub",
-          address: "789 West Blvd, Westside",
-          distance: "2.0 miles",
-          rating: 4.8,
-          reviews: 200,
-          available: 5,
-          total: 12,
-          type: "Ultra-Fast",
-          price: "$0.25/kWh",
-          latitude: 37.7822,
-          longitude: -122.4331
+    const fetchStations = async () => {
+      try {
+        const stationsCollection = collection(firestore, 'stations');
+        const stationSnapshot = await getDocs(stationsCollection);
+        
+        if (stationSnapshot.empty) {
+          console.log("No stations found in Firestore, using mock data");
+          setStations(mockStations);
+        } else {
+          const stationList = stationSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setStations(stationList);
         }
-      ];
-      setStationData(mockStations);
-      setFilteredStations(mockStations);
+      } catch (error) {
+        console.error("Error fetching stations:", error);
+        toast({
+          title: "Error loading stations",
+          description: "Using demo data instead",
+          variant: "destructive",
+        });
+        setStations(mockStations);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStations();
+  }, [toast]);
+
+  const handleStationClick = (station) => {
+    setSelectedStation(station);
+    setIsDialogOpen(true);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'available': return 'bg-green-500';
+      case 'in use': return 'bg-amber-500';
+      case 'offline': return 'bg-red-500';
+      default: return 'bg-gray-500';
     }
-  }, []);
-
-  const handleReserve = (stationId: number) => {
-    const station = stationData.find(s => s.id === stationId);
-    if (station?.available === 0) {
-      toast({
-        title: "Station Unavailable",
-        description: "This station is currently full. Please try another station.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    toast({
-      title: "Station Reserved",
-      description: `You have successfully reserved a spot at ${station?.name}. Please arrive within 15 minutes to claim your spot.`,
-    });
   };
 
-  const handleViewDetails = (stationId: number) => {
-    const station = filteredStations.find(s => s.id === stationId);
-    setSelectedStation(station || null);
-    setIsDetailsOpen(true);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    const filtered = stationData.filter(station =>
-      station.name.toLowerCase().includes(query.toLowerCase()) ||
-      station.address.toLowerCase().includes(query.toLowerCase()) ||
-      station.type.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredStations(filtered);
-  };
-
-  return (
-    <section id="stations" className="py-20 bg-gray-50 scroll-mt-16">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Charging Stations <span className="gradient-text">Near You</span>
-            </h2>
-            <p className="mt-4 text-lg text-gray-500 max-w-[600px]">
-              Find and reserve charging stations in your area. Real-time availability and detailed information at your fingertips.
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0 flex gap-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search stations..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-evblue-500 focus:border-transparent"
-              />
+  if (loading) {
+    return (
+      <section id="stations" className="py-16 bg-background">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center space-y-4 text-center">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Charging Stations</h2>
+            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">Loading stations...</p>
+            <div className="w-full max-w-md">
+              <Progress value={75} className="h-2" />
             </div>
-            <Button variant="outline" onClick={() => handleSearch("")}>
-              Clear
-            </Button>
           </div>
         </div>
+      </section>
+    );
+  }
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStations.map((station) => (
-            <div
-              key={station.id}
-              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="h-48 bg-gradient-to-r from-blue-100 to-green-100 relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <BatteryCharging className="h-16 w-16 text-evblue-500 opacity-50" />
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white to-transparent h-16" />
-              </div>
-              <div className="p-6">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-xl font-semibold">{station.name}</h3>
-                  <Badge variant={station.available > 0 ? "success" : "destructive"}>
-                    {station.available > 0 ? `${station.available}/${station.total} Available` : 'Full'}
+  return (
+    <section id="stations" className="py-16 bg-background">
+      <div className="container px-4 md:px-6">
+        <div className="flex flex-col items-center space-y-4 text-center">
+          <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">
+            <Zap className="inline-block h-4 w-4 mr-1" />
+            EV Network
+          </div>
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Charging Stations</h2>
+          <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+            Find the perfect charging station for your EV. Our network includes fast charging, standard options, and more.
+          </p>
+          <Separator className="my-8" />
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {stations.map((station) => (
+            <Card key={station.id} className="overflow-hidden transition-all hover:shadow-lg">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <Badge variant={station.status?.toLowerCase() === 'available' ? "default" : "secondary"} className="mb-2">
+                    {station.status}
                   </Badge>
+                  <div className={`h-3 w-3 rounded-full ${getStatusColor(station.status)}`}></div>
                 </div>
-                <div className="flex items-center gap-1 mt-2 text-gray-500">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{station.address}</span>
-                </div>
-                <div className="flex items-center gap-1 mt-1 text-gray-500">
-                  <span className="text-sm">{station.distance}</span>
-                </div>
-                <div className="mt-4 flex items-center gap-4">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    <span className="ml-1 text-sm font-medium">{station.rating}</span>
-                    <span className="ml-1 text-sm text-gray-500">({station.reviews})</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CloudLightning className="h-4 w-4 text-evblue-500" />
-                    <span className="ml-1 text-sm">{station.type}</span>
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <span className="text-sm font-semibold">{station.price}</span>
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <Button
-                    className="w-full"
-                    onClick={() => handleViewDetails(station.id)}
-                  >
-                    View Details
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-shrink-0"
-                    disabled={station.available === 0}
-                    onClick={() => handleReserve(station.id)}
-                  >
-                    Reserve
-                  </Button>
-                </div>
-              </div>
-            </div>
+                <CardTitle className="text-xl">{station.name}</CardTitle>
+                <CardDescription className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  {station.location}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <Table>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="py-1 pl-0 font-medium"><Zap className="inline h-4 w-4 mr-1" /> Type</TableCell>
+                      <TableCell className="py-1">{station.type}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="py-1 pl-0 font-medium"><Battery className="inline h-4 w-4 mr-1" /> Power</TableCell>
+                      <TableCell className="py-1">{station.power}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="py-1 pl-0 font-medium"><Clock className="inline h-4 w-4 mr-1" /> Price</TableCell>
+                      <TableCell className="py-1">{station.pricePerKwh}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  onClick={() => handleStationClick(station)} 
+                  variant="outline" 
+                  className="w-full group"
+                >
+                  <Info className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
+                  View Details
+                </Button>
+              </CardFooter>
+            </Card>
           ))}
         </div>
       </div>
+
       {selectedStation && (
-        <StationDetailsDialog
-          station={selectedStation}
-          open={isDetailsOpen}
-          onOpenChange={setIsDetailsOpen}
+        <StationDetailsDialog 
+          isOpen={isDialogOpen} 
+          onClose={() => setIsDialogOpen(false)} 
+          station={selectedStation} 
         />
       )}
     </section>
