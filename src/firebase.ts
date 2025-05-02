@@ -2,6 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getDatabase } from 'firebase/database';
+import { getFirestore } from 'firebase/firestore';
 
 // Use import.meta.env instead of process.env for Vite applications
 const firebaseConfig = {
@@ -17,3 +18,4 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app); // Export auth directly
 export const db = getDatabase(app); // Export db directly
+export const firestore = getFirestore(app); // Export Firestore
