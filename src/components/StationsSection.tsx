@@ -97,6 +97,9 @@ const StationsSection = () => {
   };
 
   const getStatusColor = (status) => {
+    // Add null check to prevent calling toLowerCase on undefined
+    if (!status) return 'bg-gray-500';
+    
     switch (status.toLowerCase()) {
       case 'available': return 'bg-green-500';
       case 'in use': return 'bg-amber-500';
@@ -142,7 +145,7 @@ const StationsSection = () => {
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
                   <Badge variant={station.status?.toLowerCase() === 'available' ? "default" : "secondary"} className="mb-2">
-                    {station.status}
+                    {station.status || 'Unknown'}
                   </Badge>
                   <div className={`h-3 w-3 rounded-full ${getStatusColor(station.status)}`}></div>
                 </div>
@@ -187,8 +190,8 @@ const StationsSection = () => {
 
       {selectedStation && (
         <StationDetailsDialog 
-          isOpen={isDialogOpen} 
-          onClose={() => setIsDialogOpen(false)} 
+          open={isDialogOpen} 
+          onOpenChange={setIsDialogOpen} 
           station={selectedStation} 
         />
       )}
