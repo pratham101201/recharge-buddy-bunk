@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { auth } from '@/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
@@ -25,10 +25,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  const value = {
+  // Use useMemo to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     currentUser,
     loading
-  };
+  }), [currentUser, loading]);
 
   return (
     <AuthContext.Provider value={value}>
