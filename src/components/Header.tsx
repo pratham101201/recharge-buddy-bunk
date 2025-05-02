@@ -12,6 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { LogOut, User, Home, Zap } from "lucide-react";
 
+// Firebase type declaration for window.firebase
+declare global {
+  interface Window {
+    firebase: any;
+  }
+}
+
 const Header = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
