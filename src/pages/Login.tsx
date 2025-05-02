@@ -1,22 +1,38 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { UserRound, Lock } from 'lucide-react';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/firebase"; // ✅ Adjust path as needed
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const { toast } = useToast();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Not Implemented",
-      description: "Please integrate Supabase for full authentication functionality.",
-    });
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCred.user;
+
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.email}`,
+      });
+
+      navigate("/");// ✅ Redirect to home or dashboard
+
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+      });
+    }
   };
 
   return (
@@ -32,7 +48,7 @@ const Login = () => {
             </p>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -86,7 +102,7 @@ const Login = () => {
             </div>
           </form>
         </CardContent>
-        
+
         <CardFooter className="flex flex-col space-y-4">
           <p className="text-center text-sm text-gray-600">
             Don't have an account?{' '}
