@@ -1,26 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { BatteryCharging, CloudLightning, MapPin, Star } from 'lucide-react';
 import StationDetailsDialog from './StationDetailsDialog';
-import { db } from '@/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
 
-interface Station {
-  id: number;
-  name: string;
-  address: string;
-  distance: string;
-  rating: number;
-  reviews: number;
-  available: number;
-  total: number;
-  type: string;
-  price: string;
-  latitude: number;
-  longitude: number;
-}
+const stationData = [
+  {
+    id: 1,
+    name: "City Center Station",
+    address: "123 Main St, Downtown",
+    distance: "0.8 miles away",
+    rating: 4.8,
+    reviews: 124,
+    available: 3,
+    total: 6,
+    type: "Fast Charger",
+    price: "$0.45/kWh"
+  },
+  {
+    id: 2,
+    name: "Westside Mall",
+    address: "456 Market Ave, Westside",
+    distance: "2.3 miles away",
+    rating: 4.6,
+    reviews: 89,
+    available: 0,
+    total: 4,
+    type: "Ultra Fast",
+    price: "$0.55/kWh"
+  },
+  {
+    id: 3,
+    name: "North Park Station",
+    address: "789 Park Lane, Northside",
+    distance: "3.1 miles away",
+    rating: 4.7,
+    reviews: 56,
+    available: 5,
+    total: 8,
+    type: "Standard",
+    price: "$0.35/kWh"
+  },
+];
 
 const StationsSection = () => {
   const { toast } = useToast();
@@ -29,19 +51,6 @@ const StationsSection = () => {
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "stations"), (snapshot) => {
-      const stations: Station[] = snapshot.docs.map((doc) => ({
-        id: parseInt(doc.id),
-        ...(doc.data() as Omit<Station, "id">),
-      }));
-      setStationData(stations);
-      setFilteredStations(stations);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const handleReserve = (stationId: number) => {
     const station = stationData.find(s => s.id === stationId);
