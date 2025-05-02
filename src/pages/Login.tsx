@@ -1,19 +1,28 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { UserRound, Lock } from 'lucide-react';
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/firebase"; // ✅ Adjust path as needed
+import { auth } from "@/firebase";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 const Login = () => {
   const { toast } = useToast();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,12 +35,13 @@ const Login = () => {
         description: `Welcome back, ${user.email}`,
       });
 
-      navigate("/");// ✅ Redirect to home or dashboard
+      navigate("/");
 
     } catch (error: any) {
       toast({
         title: "Login Failed",
         description: error.message,
+        variant: "destructive"
       });
     }
   };
@@ -118,4 +128,3 @@ const Login = () => {
 };
 
 export default Login;
-
