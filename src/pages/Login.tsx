@@ -1,32 +1,22 @@
-<<<<<<< HEAD
-import React from 'react';
-=======
 
 import React, { useEffect } from 'react';
->>>>>>> 543bf2e081ddd17398953dc1c271e9e57e3bcdf4
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { UserRound, Lock } from 'lucide-react';
 import { signInWithEmailAndPassword } from "firebase/auth";
-<<<<<<< HEAD
-import { auth } from "@/firebase"; // ✅ Adjust path as needed
-import { useNavigate } from 'react-router-dom';
-=======
+
 import { auth } from "@/firebase";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
->>>>>>> 543bf2e081ddd17398953dc1c271e9e57e3bcdf4
+
 
 const Login = () => {
   const { toast } = useToast();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const navigate = useNavigate();
-<<<<<<< HEAD
-
-=======
   const { currentUser } = useAuth();
 
   // Redirect if already logged in
@@ -36,7 +26,6 @@ const Login = () => {
     }
   }, [currentUser, navigate]);
 
->>>>>>> 543bf2e081ddd17398953dc1c271e9e57e3bcdf4
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -48,20 +37,13 @@ const Login = () => {
         description: `Welcome back, ${user.email}`,
       });
 
-<<<<<<< HEAD
-      navigate("/");// ✅ Redirect to home or dashboard
-=======
       navigate("/");
->>>>>>> 543bf2e081ddd17398953dc1c271e9e57e3bcdf4
 
     } catch (error: any) {
       toast({
         title: "Login Failed",
         description: error.message,
-<<<<<<< HEAD
-=======
         variant: "destructive"
->>>>>>> 543bf2e081ddd17398953dc1c271e9e57e3bcdf4
       });
     }
   };
