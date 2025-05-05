@@ -107,7 +107,8 @@ const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect }) => {
   return (
     <div className="relative w-full h-[500px] rounded-xl overflow-hidden shadow-lg mb-8">
       <div ref={mapContainer} className="absolute inset-0" />
-      <style jsx>{`
+      <style>
+        {`
         .ev-marker {
           position: relative;
           width: 32px;
@@ -160,7 +161,8 @@ const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect }) => {
             opacity: 0.7;
           }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
