@@ -4,12 +4,10 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/utils"
 
-// The TooltipProvider doesn't actually need to forward refs since it doesn't render a DOM element
-// that needs ref access, so we'll simplify this component
-const TooltipProvider = ({ 
-  children, 
-  ...props 
-}: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Provider>) => (
+const TooltipProvider = ({
+  children,
+  ...props
+}: TooltipPrimitive.TooltipProviderProps) => (
   <TooltipPrimitive.Provider {...props}>
     {children}
   </TooltipPrimitive.Provider>
