@@ -6,7 +6,7 @@ import { BatteryCharging } from 'lucide-react';
 
 // Add your Mapbox token here
 // For security in production, use environment variables
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiZXhhbXBsZXVzZXIiLCJhIjoiY2xhbXBsZSJ9.example';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoicHJhdGhhbTEyMTAyMCIsImEiOiJjbWFiOXZjMWkxeGh3MmxzZ2toN2hpeHlmIn0.MzYnS4J5NsvagaCOAAcziw';
 
 interface MapProps {
   stations: {
