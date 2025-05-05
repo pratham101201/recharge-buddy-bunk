@@ -6,11 +6,9 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast';
 import { UserRound, Lock } from 'lucide-react';
 import { signInWithEmailAndPassword } from "firebase/auth";
-
 import { auth } from "@/firebase";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-
 
 const Login = () => {
   const { toast } = useToast();
