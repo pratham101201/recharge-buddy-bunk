@@ -46,7 +46,7 @@ const StationsSection = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleReserve = (stationId: number) => {
+  const handleReserve = async (stationId: number) => {
     const station = stationData.find(s => s.id === stationId);
     if (station?.available === 0) {
       toast({
@@ -56,12 +56,42 @@ const StationsSection = () => {
       });
       return;
     }
-
-    toast({
-      title: "Station Reserved",
-      description: `You have successfully reserved a spot at ${station?.name}. Please arrive within 15 minutes to claim your spot.`,
-    });
+  
+    try {
+      const response = await fetch("/api/reserve/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ stationId }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        toast({
+          title: "Reservation Successful",
+          description: `Reserved a slot. ${data.available} slots remaining.`,
+        });
+  
+        // Optional: refresh station data or update state
+      } else {
+        toast({
+          title: "Failed to Reserve",
+          description: data.error || "Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Reserve Error:", error);
+      toast({
+        title: "Network Error",
+        description: "Unable to reserve. Try again later.",
+        variant: "destructive"
+      });
+    }
   };
+  
 
   const handleViewDetails = (stationId: number) => {
     const station = filteredStations.find(s => s.id === stationId);
