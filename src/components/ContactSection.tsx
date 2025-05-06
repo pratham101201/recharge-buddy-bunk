@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Mail, Phone, MapPin } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Mail, Phone, MapPin, AlertTriangle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ContactSection = () => {
   const { toast } = useToast();
@@ -13,16 +15,63 @@ const ContactSection = () => {
     subject: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd send this to your backend
-    console.log('Form submitted:', formData);
-    toast({
-      title: "Message Sent",
-      description: "Thank you for your message. We'll get back to you soon!",
-    });
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Log the form data (for development)
+      console.log('Form data being submitted:', formData);
+      
+      // Attempt to send data to the API
+      const response = await fetch('http://localhost:8000/api/contact/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Adding this for dev environment, remove for production
+          'Origin': window.location.origin,
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+      }
+      
+      // Success path
+      const result = await response.json();
+      console.log('Success:', result);
+      toast({
+        title: "Message Sent",
+        description: "Thank you for your message. We'll get back to you soon!",
+      });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      
+      // Specifically handle CORS errors
+      if (error instanceof TypeError && error.message.includes('NetworkError')) {
+        setError('Network error: This could be due to CORS policy restrictions. Please try again later or contact support.');
+        toast({
+          title: "CORS Error",
+          description: "Unable to connect to our server due to browser security restrictions. Please try again later.",
+          variant: "destructive",
+        });
+      } else {
+        setError('Failed to send your message. Please try again later.');
+        toast({
+          title: "Submission Failed",
+          description: "There was an error sending your message. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -80,6 +129,14 @@ const ContactSection = () => {
           
           <div className="bg-white p-8 rounded-xl shadow-sm">
             <h3 className="text-xl font-semibold mb-6">Send us a message</h3>
+            
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
@@ -92,6 +149,7 @@ const ContactSection = () => {
                     onChange={handleChange}
                     placeholder="Your name" 
                     required 
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -105,6 +163,7 @@ const ContactSection = () => {
                     onChange={handleChange}
                     placeholder="your@email.com" 
                     required 
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -119,6 +178,7 @@ const ContactSection = () => {
                   onChange={handleChange}
                   placeholder="How can we help?" 
                   required 
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -133,11 +193,16 @@ const ContactSection = () => {
                   placeholder="Your message..." 
                   className="h-32" 
                   required 
+                  disabled={isSubmitting}
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white">
-                Send Message
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending...' : 'Send Message'}
               </Button>
             </form>
           </div>
