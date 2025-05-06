@@ -21,7 +21,7 @@ const ContactSection = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
@@ -197,5 +197,5 @@ const ContactSection = () => {
     </section>
   );
 };
-}
+
 export default ContactSection;
