@@ -5,6 +5,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
+
+
+
 const ContactSection = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -14,16 +17,43 @@ const ContactSection = () => {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd send this to your backend
-    console.log('Form submitted:', formData);
-    toast({
-      title: "Message Sent",
-      description: "Thank you for your message. We'll get back to you soon!",
-    });
-    setFormData({ name: '', email: '', subject: '', message: '' });
+  
+    try {
+      const response = await fetch("http://localhost:8000/api/contact/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (response.ok) {
+        toast({
+          title: "Message Sent",
+          description: "Thank you for your message. We'll get back to you soon!",
+        });
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        const errorData = await response.json();
+        console.error("Validation error:", errorData);
+        toast({
+          title: "Submission failed",
+          description: "Please check your input and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast({
+        title: "Network error",
+        description: "Could not reach the server. Try again later.",
+        variant: "destructive",
+      });
+    }
   };
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
