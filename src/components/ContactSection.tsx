@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Mail, Phone, MapPin } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Mail, Phone, MapPin, AlertTriangle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 
 
@@ -16,7 +18,10 @@ const ContactSection = () => {
     subject: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const handleSubmit = async (e: React.FormEvent) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
@@ -110,6 +115,14 @@ const ContactSection = () => {
           
           <div className="bg-white p-8 rounded-xl shadow-sm">
             <h3 className="text-xl font-semibold mb-6">Send us a message</h3>
+            
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
@@ -122,6 +135,7 @@ const ContactSection = () => {
                     onChange={handleChange}
                     placeholder="Your name" 
                     required 
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -135,6 +149,7 @@ const ContactSection = () => {
                     onChange={handleChange}
                     placeholder="your@email.com" 
                     required 
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -149,6 +164,7 @@ const ContactSection = () => {
                   onChange={handleChange}
                   placeholder="How can we help?" 
                   required 
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -163,11 +179,16 @@ const ContactSection = () => {
                   placeholder="Your message..." 
                   className="h-32" 
                   required 
+                  disabled={isSubmitting}
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white">
-                Send Message
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending...' : 'Send Message'}
               </Button>
             </form>
           </div>
