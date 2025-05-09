@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserRound, Lock } from 'lucide-react';
 import { auth } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 const Signup = () => {
@@ -15,6 +15,7 @@ const Signup = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
@@ -36,6 +37,8 @@ const Signup = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       toast({
@@ -49,6 +52,8 @@ const Signup = () => {
         description: error.message || "An error occurred.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -84,6 +89,7 @@ const Signup = () => {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -104,6 +110,7 @@ const Signup = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -124,6 +131,7 @@ const Signup = () => {
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -131,8 +139,9 @@ const Signup = () => {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600"
+              disabled={isLoading}
             >
-              Sign up
+              {isLoading ? "Creating account..." : "Sign up"}
             </Button>
           </form>
         </CardContent>
@@ -140,9 +149,9 @@ const Signup = () => {
         <CardFooter className="flex flex-col space-y-4">
           <p className="text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <a href="/login" className="font-medium text-evblue-600 hover:text-evblue-500">
+            <Link to="/login" className="font-medium text-evblue-600 hover:text-evblue-500">
               Sign in
-            </a>
+            </Link>
           </p>
         </CardFooter>
       </Card>
