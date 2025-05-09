@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +10,15 @@ import EVStationMap from './EVStationMap';
 import StationFilters from './StationFilters';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Station {
   id: number;
@@ -52,6 +60,9 @@ const StationsSection = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 6; // Number of stations per page
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "stations"), (snapshot) => {
@@ -129,6 +140,15 @@ const StationsSection = () => {
     }
 
     setFilteredStations(results);
+    setTotalPages(Math.ceil(results.length / itemsPerPage));
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  // Get current page items
+  const getCurrentPageItems = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredStations.slice(startIndex, endIndex);
   };
 
   const handleReserve = async (stationId: number) => {
@@ -242,6 +262,56 @@ const StationsSection = () => {
     return station.available > 0 ? "success" : "destructive";
   };
 
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total is less than maxPagesToShow
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always include first page
+      pageNumbers.push(1);
+      
+      // Calculate start and end of middle pages
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust if at the beginning
+      if (currentPage <= 3) {
+        endPage = 4;
+      }
+      
+      // Adjust if at the end
+      if (currentPage >= totalPages - 2) {
+        startPage = totalPages - 3;
+      }
+      
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pageNumbers.push('ellipsis-start');
+      }
+      
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pageNumbers.push('ellipsis-end');
+      }
+      
+      // Always include last page
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
+  };
+
   return (
     <section id="stations" className="py-20 bg-gray-50 scroll-mt-16">
       <div className="container px-4 md:px-6">
@@ -333,80 +403,120 @@ const StationsSection = () => {
             )}
 
             {viewMode === 'list' && filteredStations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredStations.map((station) => (
-                  <div
-                    key={station.id}
-                    className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="h-48 bg-gradient-to-r from-blue-100 to-green-100 relative">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <BatteryCharging className="h-16 w-16 text-evblue-500 opacity-50" />
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {getCurrentPageItems().map((station) => (
+                    <div
+                      key={station.id}
+                      className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="h-48 bg-gradient-to-r from-blue-100 to-green-100 relative">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <BatteryCharging className="h-16 w-16 text-evblue-500 opacity-50" />
+                        </div>
+                        <div className="absolute top-4 right-4">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full h-8 w-8"
+                            onClick={() => toggleFavorite(station.id)}
+                          >
+                            {favorites.includes(station.id) ? (
+                              <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                            ) : (
+                              <Heart className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white to-transparent h-16" />
                       </div>
-                      <div className="absolute top-4 right-4">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="bg-white/80 backdrop-blur-sm hover:bg-white rounded-full h-8 w-8"
-                          onClick={() => toggleFavorite(station.id)}
-                        >
-                          {favorites.includes(station.id) ? (
-                            <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+                      <div className="p-6">
+                        <div className="flex justify-between items-start">
+                          <h3 className="text-xl font-semibold">{station.name}</h3>
+                          <Badge variant={getStatusColor(station)}>
+                            {station.available > 0 ? `${station.available}/${station.total} Available` : 'Full'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-1 mt-2 text-gray-500">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-sm">{station.address}</span>
+                        </div>
+                        <div className="flex items-center gap-1 mt-1 text-gray-500">
+                          <span className="text-sm">{station.distance}</span>
+                        </div>
+                        <div className="mt-4 flex items-center gap-4">
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                            <span className="ml-1 text-sm font-medium">{station.rating}</span>
+                            <span className="ml-1 text-sm text-gray-500">({station.reviews})</span>
+                          </div>
+                          <div className="flex items-center">
+                            <CloudLightning className="h-4 w-4 text-evblue-500" />
+                            <span className="ml-1 text-sm">{station.type}</span>
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-sm font-semibold">{station.price}</span>
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                          <Button
+                            className="w-full"
+                            onClick={() => handleViewDetails(station.id)}
+                          >
+                            View Details
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="flex-shrink-0"
+                            disabled={station.available === 0}
+                            onClick={() => handleReserve(station.id)}
+                          >
+                            Reserve
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Pagination className="my-8">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          aria-disabled={currentPage === 1}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                      
+                      {getPageNumbers().map((pageNum, idx) => (
+                        <PaginationItem key={idx}>
+                          {pageNum === 'ellipsis-start' || pageNum === 'ellipsis-end' ? (
+                            <PaginationEllipsis />
                           ) : (
-                            <Heart className="h-4 w-4" />
+                            <PaginationLink 
+                              isActive={currentPage === pageNum}
+                              onClick={() => setCurrentPage(Number(pageNum))}
+                            >
+                              {pageNum}
+                            </PaginationLink>
                           )}
-                        </Button>
-                      </div>
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white to-transparent h-16" />
-                    </div>
-                    <div className="p-6">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-xl font-semibold">{station.name}</h3>
-                        <Badge variant={getStatusColor(station)}>
-                          {station.available > 0 ? `${station.available}/${station.total} Available` : 'Full'}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-1 mt-2 text-gray-500">
-                        <MapPin className="h-4 w-4" />
-                        <span className="text-sm">{station.address}</span>
-                      </div>
-                      <div className="flex items-center gap-1 mt-1 text-gray-500">
-                        <span className="text-sm">{station.distance}</span>
-                      </div>
-                      <div className="mt-4 flex items-center gap-4">
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                          <span className="ml-1 text-sm font-medium">{station.rating}</span>
-                          <span className="ml-1 text-sm text-gray-500">({station.reviews})</span>
-                        </div>
-                        <div className="flex items-center">
-                          <CloudLightning className="h-4 w-4 text-evblue-500" />
-                          <span className="ml-1 text-sm">{station.type}</span>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-sm font-semibold">{station.price}</span>
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button
-                          className="w-full"
-                          onClick={() => handleViewDetails(station.id)}
-                        >
-                          View Details
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="flex-shrink-0"
-                          disabled={station.available === 0}
-                          onClick={() => handleReserve(station.id)}
-                        >
-                          Reserve
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        </PaginationItem>
+                      ))}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          aria-disabled={currentPage === totalPages}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </>
             ) : viewMode === 'list' && (
               <div className="text-center py-20">
                 <h3 className="text-xl font-semibold text-gray-600">No stations match your search criteria</h3>
