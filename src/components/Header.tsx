@@ -1,35 +1,17 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { CloudLightning, LogOut } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { CloudLightning, LogOut, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { auth } from '@/firebase';
-import { signOut } from 'firebase/auth';
-import { useToast } from '@/hooks/use-toast';
 
 const Header = () => {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const { currentUser, logout } = useAuth();
 
   const scrollToStations = () => {
     const stationsSection = document.getElementById('stations');
     if (stationsSection) {
       stationsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      navigate('/login');
-    } catch (error) {
-      console.error("Error signing out:", error);
     }
   };
 
@@ -57,10 +39,16 @@ const Header = () => {
         <div className="flex items-center gap-4">
           {currentUser ? (
             <div className="flex items-center gap-4">
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden md:inline">Dashboard</span>
+                </Button>
+              </Link>
               <span className="text-sm text-gray-600 hidden md:block">
                 {currentUser.email}
               </span>
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={logout} className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
                 <span className="hidden md:inline">Log out</span>
               </Button>

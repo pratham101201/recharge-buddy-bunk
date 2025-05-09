@@ -1,13 +1,22 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Star, MapPin, CloudLightning } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Star, MapPin, CloudLightning, Heart, CreditCard, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { db } from '@/firebase';
+import { doc, updateDoc, arrayUnion, Timestamp } from 'firebase/firestore';
+import { useAuth } from '@/context/AuthContext';
 
 interface Station {
   id: number;
@@ -28,21 +37,102 @@ interface StationDetailsDialogProps {
   station: Station | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  onReserve?: () => void;
 }
 
 const StationDetailsDialog = ({
   station,
   open,
   onOpenChange,
+  isFavorite = false,
+  onToggleFavorite,
+  onReserve,
 }: StationDetailsDialogProps) => {
+  const { toast } = useToast();
+  const { currentUser } = useAuth();
+  const [userRating, setUserRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   if (!station) return null;
+
+  const handleSubmitReview = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to leave a review.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (userRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSubmittingReview(true);
+
+    try {
+      // In a real app, this would add the review to your database
+      // Here we're just simulating it
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      toast({
+        title: "Review Submitted",
+        description: "Thank you for your feedback!",
+      });
+
+      setUserRating(0);
+      setReviewText('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit review. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{station.name}</DialogTitle>
-          <DialogDescription className="pt-4">
+          <div className="flex justify-between items-start">
+            <DialogTitle className="text-xl font-bold">{station.name}</DialogTitle>
+            {onToggleFavorite && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="rounded-full h-8 w-8"
+                onClick={onToggleFavorite}
+              >
+                {isFavorite ? (
+                  <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                ) : (
+                  <Heart className="h-5 w-5" />
+                )}
+              </Button>
+            )}
+          </div>
+        </DialogHeader>
+
+        <Tabs defaultValue="details">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger value="payment">Payment</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="details" className="pt-4">
             <div className="space-y-5 text-gray-700">
               {/* Address and Availability */}
               <div className="flex justify-between items-center">
@@ -99,12 +189,143 @@ const StationDetailsDialog = ({
                 </a>
               </div>
             </div>
-          </DialogDescription>
-        </DialogHeader>
+
+            <DialogFooter className="mt-6">
+              <Button 
+                className="w-full"
+                disabled={station.available === 0}
+                onClick={onReserve}
+              >
+                {station.available > 0 ? 'Reserve Now' : 'Currently Full'}
+              </Button>
+            </DialogFooter>
+          </TabsContent>
+          
+          <TabsContent value="reviews" className="pt-4">
+            <div className="space-y-6">
+              <div className="border-b pb-4">
+                <h4 className="font-semibold mb-2">Leave a Review</h4>
+                <div className="flex items-center gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setUserRating(star)}
+                      className="focus:outline-none"
+                    >
+                      <Star 
+                        className={`h-6 w-6 ${
+                          star <= userRating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                        }`} 
+                      />
+                    </button>
+                  ))}
+                </div>
+                <Textarea
+                  placeholder="Share your experience..."
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  className="resize-none"
+                  rows={3}
+                />
+                <Button 
+                  className="mt-2 w-full"
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview}
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                <h4 className="font-semibold">Recent Reviews</h4>
+                <div className="space-y-4">
+                  <div className="p-3 bg-gray-50 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star 
+                            key={star}
+                            className={`h-3 w-3 ${
+                              star <= 4 ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                            }`} 
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-500">2 weeks ago</span>
+                    </div>
+                    <p className="text-sm mt-1">
+                      Great location! The chargers were fast and the staff was very helpful.
+                    </p>
+                  </div>
+                  
+                  <div className="p-3 bg-gray-50 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star 
+                            key={star}
+                            className={`h-3 w-3 ${
+                              star <= 5 ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                            }`} 
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-500">1 month ago</span>
+                    </div>
+                    <p className="text-sm mt-1">
+                      Best charging station I've used so far. Clean facilities and reliable chargers.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="payment" className="pt-4">
+            <div className="space-y-6">
+              <div className="text-center border-b pb-6">
+                <h4 className="font-semibold mb-1">Price</h4>
+                <div className="text-2xl font-bold">{station.price}</div>
+                <p className="text-sm text-gray-500 mt-1">Per charging session</p>
+              </div>
+              
+              <div className="space-y-3">
+                <h4 className="font-semibold">Payment Methods</h4>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div className="flex items-center">
+                      <CreditCard className="h-5 w-5 text-blue-500 mr-2" />
+                      <span>VISA •••• 4242</span>
+                    </div>
+                    <Badge variant="outline">Default</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-md">
+                    <div className="flex items-center">
+                      <CreditCard className="h-5 w-5 text-red-500 mr-2" />
+                      <span>Mastercard •••• 5555</span>
+                    </div>
+                    <Button variant="ghost" size="sm">Use</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="mt-6">
+              <Button 
+                className="w-full"
+                disabled={station.available === 0}
+                onClick={onReserve}
+              >
+                {station.available > 0 ? 'Pay & Reserve' : 'Currently Full'}
+              </Button>
+            </DialogFooter>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
 };
 
 export default StationDetailsDialog;
-

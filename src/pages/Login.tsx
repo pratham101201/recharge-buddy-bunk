@@ -7,13 +7,14 @@ import { useToast } from '@/hooks/use-toast';
 import { UserRound, Lock } from 'lucide-react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 const Login = () => {
   const { toast } = useToast();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
@@ -26,6 +27,8 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const user = userCred.user;
@@ -43,6 +46,8 @@ const Login = () => {
         description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -80,6 +85,7 @@ const Login = () => {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -102,13 +108,18 @@ const Login = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             </div>
 
             <div>
-              <Button type="submit" className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600">
-                Sign in
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </div>
           </form>
@@ -117,9 +128,9 @@ const Login = () => {
         <CardFooter className="flex flex-col space-y-4">
           <p className="text-center text-sm text-gray-600">
             Don't have an account?{' '}
-            <a href="/Signup" className="font-medium text-evblue-600 hover:text-evblue-500">
+            <Link to="/signup" className="font-medium text-evblue-600 hover:text-evblue-500">
               Sign up
-            </a>
+            </Link>
           </p>
         </CardFooter>
       </Card>
