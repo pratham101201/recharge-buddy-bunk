@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { CloudLightning, LogOut } from 'lucide-react';
+import { CloudLightning, LogOut, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { auth } from '@/firebase';
@@ -57,6 +57,12 @@ const Header = () => {
         <div className="flex items-center gap-4">
           {currentUser ? (
             <div className="flex items-center gap-4">
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden md:inline">Dashboard</span>
+                </Button>
+              </Link>
               <span className="text-sm text-gray-600 hidden md:block">
                 {currentUser.email}
               </span>
