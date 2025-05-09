@@ -18,9 +18,10 @@ interface MapProps {
     total: number;
   }[];
   onStationSelect?: (stationId: number) => void;
+  favorites?: number[]; // Added favorites prop to the interface
 }
 
-const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect }) => {
+const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect, favorites = [] }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<{ [key: number]: mapboxgl.Marker }>({});
@@ -71,11 +72,15 @@ const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect }) => {
       // Create a custom marker element
       const el = document.createElement('div');
       el.className = 'ev-marker';
+      
+      // Check if this station is in favorites
+      const isFavorite = favorites.includes(station.id);
+      
       el.innerHTML = `
-        <div class="marker-icon ${station.available > 0 ? 'available' : 'unavailable'}">
+        <div class="marker-icon ${station.available > 0 ? 'available' : 'unavailable'} ${isFavorite ? 'favorite' : ''}">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-battery-charging"><path d="M14 9h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"/><path d="M6 11V8a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1"/><path d="m10 14-2 2v-3"/><path d="M7 9a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2"/></svg>
         </div>
-        <div class="marker-pulse"></div>
+        <div class="marker-pulse ${isFavorite ? 'favorite-pulse' : ''}"></div>
       `;
       
       // Create popup content
@@ -83,6 +88,7 @@ const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect }) => {
         <div class="flex flex-col p-2">
           <h3 class="font-semibold text-sm">${station.name}</h3>
           <p class="text-xs">${station.available}/${station.total} available</p>
+          ${isFavorite ? '<p class="text-xs text-amber-600 font-semibold">★ Favorite</p>' : ''}
         </div>
       `);
 
@@ -102,7 +108,7 @@ const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect }) => {
         }
       });
     });
-  }, [stations, mapInitialized, onStationSelect]);
+  }, [stations, mapInitialized, onStationSelect, favorites]);
 
   return (
     <div className="relative w-full h-[500px] rounded-xl overflow-hidden shadow-lg mb-8">
@@ -135,6 +141,10 @@ const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect }) => {
         .marker-icon.unavailable svg {
           color: #ea384c;
         }
+        .marker-icon.favorite {
+          background: #fff0b3;
+          border: 2px solid #ffbb00;
+        }
         .marker-pulse {
           position: absolute;
           top: 0;
@@ -146,6 +156,9 @@ const EVStationMap: React.FC<MapProps> = ({ stations, onStationSelect }) => {
           opacity: 0.7;
           z-index: 1;
           animation: pulse 1.5s infinite;
+        }
+        .marker-pulse.favorite-pulse {
+          background: rgba(255, 187, 0, 0.4);
         }
         @keyframes pulse {
           0% {
