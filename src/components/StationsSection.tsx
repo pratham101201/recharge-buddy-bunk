@@ -34,7 +34,7 @@ const StationsSection = () => {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('map');
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "stations"), (snapshot) => {
+    const unsubscribe = onSnapshot(collection(db, "stations2"), (snapshot) => {
       const stations: Station[] = snapshot.docs.map((doc) => ({
         id: parseInt(doc.id),
         ...(doc.data() as Omit<Station, "id">),
