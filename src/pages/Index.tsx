@@ -9,8 +9,6 @@ import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
 
 const Index = () => {
-  console.log('Index component rendering...');
-  
   return (
     <div className="flex flex-col min-h-screen">
       <Header />

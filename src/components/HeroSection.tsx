@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, BatteryCharging } from 'lucide-react';
 
 const HeroSection = () => {
-  console.log('HeroSection rendering...');
-  
   return (
     <section className="relative overflow-hidden py-20 md:py-32 bg-gradient-to-br from-white via-blue-50 to-green-50">
       <div className="container px-4 md:px-6">
