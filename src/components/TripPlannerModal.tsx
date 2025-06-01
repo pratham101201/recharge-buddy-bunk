@@ -11,13 +11,25 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, Car, Route, MapPin } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle, Car, Route, MapPin, Battery, Clock, Zap } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface TripPlannerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+interface ChargingStop {
+  id: number;
+  name: string;
+  location: string;
+  distance: number;
+  chargingTime: number;
+  chargerType: string;
+  power: string;
 }
 
 const TripPlannerModal: React.FC<TripPlannerModalProps> = ({ open, onOpenChange }) => {
@@ -28,133 +40,290 @@ const TripPlannerModal: React.FC<TripPlannerModalProps> = ({ open, onOpenChange 
   const [currentCharge, setCurrentCharge] = useState(50);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tripPlan, setTripPlan] = useState<{
+    totalDistance: number;
+    estimatedTime: number;
+    chargingStops: ChargingStop[];
+  } | null>(null);
+
+  const carModels = [
+    { value: 'tesla-model-3', label: 'Tesla Model 3', range: 358 },
+    { value: 'tesla-model-s', label: 'Tesla Model S', range: 405 },
+    { value: 'bmw-i3', label: 'BMW i3', range: 153 },
+    { value: 'nissan-leaf', label: 'Nissan Leaf', range: 226 },
+    { value: 'audi-etron', label: 'Audi e-tron', range: 222 },
+    { value: 'ford-mustang-mach-e', label: 'Ford Mustang Mach-E', range: 314 },
+  ];
+
+  const generateTripPlan = (distance: number, vehicleRange: number, currentBattery: number) => {
+    const availableRange = (vehicleRange * currentBattery) / 100;
+    const chargingStops: ChargingStop[] = [];
+    
+    let remainingDistance = distance;
+    let currentDistance = 0;
+    let stopCounter = 1;
+
+    // If we can make it without charging
+    if (availableRange >= distance) {
+      return {
+        totalDistance: distance,
+        estimatedTime: Math.round(distance / 60 * 100) / 100, // Assuming 60 mph average
+        chargingStops: []
+      };
+    }
+
+    // Calculate charging stops needed
+    while (remainingDistance > availableRange * 0.8) { // Leave 20% buffer
+      const stopDistance = currentDistance + (availableRange * 0.8);
+      chargingStops.push({
+        id: stopCounter,
+        name: `Charging Station ${stopCounter}`,
+        location: `Mile ${Math.round(stopDistance)}`,
+        distance: Math.round(stopDistance),
+        chargingTime: 30, // 30 minutes for 80% charge
+        chargerType: 'DC Fast Charger',
+        power: '150kW'
+      });
+      
+      currentDistance = stopDistance;
+      remainingDistance = distance - currentDistance;
+      stopCounter++;
+    }
+
+    const totalTime = (distance / 60) + (chargingStops.length * 0.5); // Drive time + charging time
+    
+    return {
+      totalDistance: distance,
+      estimatedTime: Math.round(totalTime * 100) / 100,
+      chargingStops
+    };
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!startLocation || !destination) {
-      setError('Please fill in both start location and destination');
+    if (!startLocation || !destination || !carModel) {
+      setError('Please fill in all required fields');
       return;
     }
 
-    // In a real application, this would send a request to a backend service
-    // to calculate the route with charging stations
     setLoading(true);
+    
+    // Simulate API call
     setTimeout(() => {
+      // Mock distance calculation (in real app, you'd use a routing API)
+      const mockDistance = Math.floor(Math.random() * 500) + 100; // 100-600 miles
+      const selectedCar = carModels.find(car => car.value === carModel);
+      
+      if (selectedCar) {
+        const plan = generateTripPlan(mockDistance, selectedCar.range, currentCharge);
+        setTripPlan(plan);
+      }
+      
       setLoading(false);
-      onOpenChange(false);
       
       toast({
         title: "Trip Planned Successfully",
-        description: `Your trip from ${startLocation} to ${destination} has been planned with optimal charging stops.`,
+        description: `Your route from ${startLocation} to ${destination} has been calculated.`,
       });
-      
-      // In a real app, you would redirect to a trip details page
-      // or update the UI with the planned route
-    }, 1500);
+    }, 2000);
+  };
+
+  const resetPlan = () => {
+    setTripPlan(null);
+    setStartLocation('');
+    setDestination('');
+    setCarModel('');
+    setCurrentCharge(50);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Route className="h-5 w-5" />
-            Plan Your EV Trip
+            EV Trip Planner
           </DialogTitle>
           <DialogDescription>
-            Find the optimal route with charging stops based on your vehicle and trip details.
+            Plan your electric vehicle journey with optimal charging stops.
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="start" className="text-right">
-                Start
-              </Label>
-              <div className="col-span-3 relative">
-                <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  id="start"
-                  placeholder="Starting location"
-                  className="pl-8"
-                  value={startLocation}
-                  onChange={(e) => setStartLocation(e.target.value)}
-                />
-              </div>
-            </div>
+        {!tripPlan ? (
+          <form onSubmit={handleSubmit}>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="destination" className="text-right">
-                Destination
-              </Label>
-              <div className="col-span-3 relative">
-                <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  id="destination"
-                  placeholder="Final destination"
-                  className="pl-8"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="car" className="text-right">
-                EV Model
-              </Label>
-              <div className="col-span-3 relative">
-                <Car className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  id="car"
-                  placeholder="e.g. Tesla Model 3"
-                  className="pl-8"
-                  value={carModel}
-                  onChange={(e) => setCarModel(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="charge" className="text-right">
-                Current Charge
-              </Label>
-              <div className="col-span-3">
-                <div className="flex items-center gap-2">
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="start" className="text-right">
+                  Start *
+                </Label>
+                <div className="col-span-3 relative">
+                  <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
                   <Input
-                    id="charge"
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={currentCharge}
-                    onChange={(e) => setCurrentCharge(parseInt(e.target.value))}
-                    className="w-full"
+                    id="start"
+                    placeholder="Starting location (e.g., San Francisco, CA)"
+                    className="pl-8"
+                    value={startLocation}
+                    onChange={(e) => setStartLocation(e.target.value)}
                   />
-                  <span className="w-10 text-center font-medium">{currentCharge}%</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="destination" className="text-right">
+                  Destination *
+                </Label>
+                <div className="col-span-3 relative">
+                  <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                  <Input
+                    id="destination"
+                    placeholder="Final destination (e.g., Los Angeles, CA)"
+                    className="pl-8"
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="car" className="text-right">
+                  EV Model *
+                </Label>
+                <div className="col-span-3">
+                  <Select onValueChange={setCarModel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your electric vehicle" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {carModels.map((car) => (
+                        <SelectItem key={car.value} value={car.value}>
+                          {car.label} ({car.range} miles range)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="charge" className="text-right">
+                  Current Charge
+                </Label>
+                <div className="col-span-3">
+                  <div className="flex items-center gap-4">
+                    <Input
+                      id="charge"
+                      type="range"
+                      min="10"
+                      max="100"
+                      value={currentCharge}
+                      onChange={(e) => setCurrentCharge(parseInt(e.target.value))}
+                      className="flex-1"
+                    />
+                    <div className="flex items-center gap-2 min-w-[80px]">
+                      <Battery className="h-4 w-4" />
+                      <span className="font-medium">{currentCharge}%</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+            
+            <DialogFooter>
+              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Planning Route...' : 'Plan My Trip'}
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          <div className="py-4">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Trip Summary</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <Route className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm text-gray-600">Distance</span>
+                  </div>
+                  <span className="text-xl font-bold">{tripPlan.totalDistance} mi</span>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <Clock className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-gray-600">Est. Time</span>
+                  </div>
+                  <span className="text-xl font-bold">{tripPlan.estimatedTime} hrs</span>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <Zap className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm text-gray-600">Stops</span>
+                  </div>
+                  <span className="text-xl font-bold">{tripPlan.chargingStops.length}</span>
+                </div>
+              </div>
+            </div>
+
+            {tripPlan.chargingStops.length > 0 ? (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Recommended Charging Stops</h3>
+                <div className="space-y-3">
+                  {tripPlan.chargingStops.map((stop) => (
+                    <Card key={stop.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                              <span className="text-sm font-bold text-blue-600">{stop.id}</span>
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{stop.name}</h4>
+                              <p className="text-sm text-gray-600">{stop.location}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Zap className="h-4 w-4" />
+                              {stop.power} • {stop.chargingTime} min
+                            </div>
+                            <p className="text-sm font-medium">{stop.chargerType}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Alert className="mb-4">
+                <Battery className="h-4 w-4" />
+                <AlertDescription>
+                  Great news! Your current charge is sufficient to reach your destination without stopping.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <DialogFooter className="mt-6">
+              <Button variant="outline" onClick={resetPlan}>
+                Plan Another Trip
+              </Button>
+              <Button onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            </DialogFooter>
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Planning...' : 'Plan My Trip'}
-            </Button>
-          </DialogFooter>
-        </form>
+        )}
       </DialogContent>
     </Dialog>
   );
