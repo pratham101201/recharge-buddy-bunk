@@ -8,12 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 const Header = () => {
   const { currentUser, logout } = useAuth();
 
-  const scrollToStations = () => {
-    const stationsSection = document.getElementById('stations');
-    if (stationsSection) {
-      stationsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+
 
   return (
     <header className="sticky top-0 w-full bg-white/90 backdrop-blur-sm border-b border-gray-200 z-10">
@@ -22,7 +17,9 @@ const Header = () => {
           <CloudLightning className="h-6 w-6 text-evblue-600" />
           <span className="text-xl font-bold gradient-text">EV Recharge</span>
         </Link>
+        
         <nav className="hidden md:flex items-center gap-6">
+          
           <a href="#about" className="text-sm font-medium text-gray-600 hover:text-evblue-600 transition-colors">
             About
           </a>
@@ -35,6 +32,7 @@ const Header = () => {
           <a href="#contact" className="text-sm font-medium text-gray-600 hover:text-evblue-600 transition-colors">
             Contact
           </a>
+          
         </nav>
         <div className="flex items-center gap-4">
           {currentUser ? (
@@ -42,12 +40,10 @@ const Header = () => {
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  <span className="hidden md:inline">Dashboard</span>
+                  
                 </Button>
               </Link>
-              <span className="text-sm text-gray-600 hidden md:block">
-                {currentUser.email}
-              </span>
+              
               <Button variant="ghost" size="sm" onClick={logout} className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
                 <span className="hidden md:inline">Log out</span>
@@ -60,12 +56,7 @@ const Header = () => {
               </Button>
             </Link>
           )}
-          <Button 
-            onClick={scrollToStations}
-            className="bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600 text-white"
-          >
-            Find Stations
-          </Button>
+          
         </div>
       </div>
     </header>

@@ -82,7 +82,7 @@ const Login = () => {
                   autoComplete="email"
                   required
                   className="pl-10"
-                  placeholder="you@example.com"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
