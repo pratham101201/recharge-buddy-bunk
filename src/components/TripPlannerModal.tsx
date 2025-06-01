@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -16,6 +15,7 @@ import { AlertCircle, Car, Route, MapPin, Battery, Clock, Zap } from 'lucide-rea
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTripContext } from '@/context/TripContext';
 
 interface TripPlannerModalProps {
   open: boolean;
@@ -34,6 +34,7 @@ interface ChargingStop {
 
 const TripPlannerModal: React.FC<TripPlannerModalProps> = ({ open, onOpenChange }) => {
   const { toast } = useToast();
+  const { addTrip } = useTripContext();
   const [startLocation, setStartLocation] = useState('');
   const [destination, setDestination] = useState('');
   const [carModel, setCarModel] = useState('');
@@ -63,24 +64,22 @@ const TripPlannerModal: React.FC<TripPlannerModalProps> = ({ open, onOpenChange 
     let currentDistance = 0;
     let stopCounter = 1;
 
-    // If we can make it without charging
     if (availableRange >= distance) {
       return {
         totalDistance: distance,
-        estimatedTime: Math.round(distance / 60 * 100) / 100, // Assuming 60 mph average
+        estimatedTime: Math.round(distance / 60 * 100) / 100,
         chargingStops: []
       };
     }
 
-    // Calculate charging stops needed
-    while (remainingDistance > availableRange * 0.8) { // Leave 20% buffer
+    while (remainingDistance > availableRange * 0.8) {
       const stopDistance = currentDistance + (availableRange * 0.8);
       chargingStops.push({
         id: stopCounter,
         name: `Charging Station ${stopCounter}`,
         location: `Mile ${Math.round(stopDistance)}`,
         distance: Math.round(stopDistance),
-        chargingTime: 30, // 30 minutes for 80% charge
+        chargingTime: 30,
         chargerType: 'DC Fast Charger',
         power: '150kW'
       });
@@ -90,7 +89,7 @@ const TripPlannerModal: React.FC<TripPlannerModalProps> = ({ open, onOpenChange 
       stopCounter++;
     }
 
-    const totalTime = (distance / 60) + (chargingStops.length * 0.5); // Drive time + charging time
+    const totalTime = (distance / 60) + (chargingStops.length * 0.5);
     
     return {
       totalDistance: distance,
@@ -110,10 +109,8 @@ const TripPlannerModal: React.FC<TripPlannerModalProps> = ({ open, onOpenChange 
 
     setLoading(true);
     
-    // Simulate API call
     setTimeout(() => {
-      // Mock distance calculation (in real app, you'd use a routing API)
-      const mockDistance = Math.floor(Math.random() * 500) + 100; // 100-600 miles
+      const mockDistance = Math.floor(Math.random() * 500) + 100;
       const selectedCar = carModels.find(car => car.value === carModel);
       
       if (selectedCar) {
@@ -128,6 +125,28 @@ const TripPlannerModal: React.FC<TripPlannerModalProps> = ({ open, onOpenChange 
         description: `Your route from ${startLocation} to ${destination} has been calculated.`,
       });
     }, 2000);
+  };
+
+  const saveTrip = () => {
+    if (tripPlan) {
+      const selectedCarLabel = carModels.find(car => car.value === carModel)?.label || carModel;
+      addTrip({
+        startLocation,
+        destination,
+        carModel: selectedCarLabel,
+        totalDistance: tripPlan.totalDistance,
+        estimatedTime: tripPlan.estimatedTime,
+        chargingStops: tripPlan.chargingStops,
+      });
+
+      toast({
+        title: "Trip Saved",
+        description: "Your trip has been saved to your history.",
+      });
+
+      resetPlan();
+      onOpenChange(false);
+    }
   };
 
   const resetPlan = () => {
@@ -318,7 +337,10 @@ const TripPlannerModal: React.FC<TripPlannerModalProps> = ({ open, onOpenChange 
               <Button variant="outline" onClick={resetPlan}>
                 Plan Another Trip
               </Button>
-              <Button onClick={() => onOpenChange(false)}>
+              <Button onClick={saveTrip} className="bg-blue-600 hover:bg-blue-700">
+                Save Trip
+              </Button>
+              <Button variant="ghost" onClick={() => onOpenChange(false)}>
                 Close
               </Button>
             </DialogFooter>
