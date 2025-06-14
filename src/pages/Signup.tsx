@@ -5,11 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { UserRound, Lock, Phone, MapPin, Car } from 'lucide-react';
+import { UserRound, Lock, Phone, MapPin } from 'lucide-react';
 import { auth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+
+const indianStates = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 
+  'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 
+  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 
+  'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 
+  'Uttarakhand', 'West Bengal', 'Jammu and Kashmir', 'Ladakh', 
+  'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 
+  'Lakshadweep', 'Puducherry'
+];
 
 const Signup = () => {
   const { toast } = useToast();
@@ -23,9 +34,7 @@ const Signup = () => {
     address: '',
     city: '',
     state: '',
-    zipCode: '',
-    vehicleModel: '',
-    vehicleYear: '',
+    pinCode: '',
   });
   const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
@@ -42,6 +51,16 @@ const Signup = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const validatePinCode = (pinCode: string) => {
+    const pinCodeRegex = /^[1-9][0-9]{5}$/;
+    return pinCodeRegex.test(pinCode);
+  };
+
+  const validatePhoneNumber = (phone: string) => {
+    const phoneRegex = /^[6-9]\d{9}$/;
+    return phoneRegex.test(phone);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,6 +84,24 @@ const Signup = () => {
       return;
     }
 
+    if (!validatePhoneNumber(formData.phone)) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid Indian mobile number (10 digits starting with 6-9).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validatePinCode(formData.pinCode)) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid Indian PIN code (6 digits, not starting with 0).",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -77,13 +114,13 @@ const Signup = () => {
 
       toast({
         title: "Signup successful!",
-        description: "Your account has been created.",
+        description: "Your account has been created successfully.",
       });
       navigate('/');
     } catch (error: any) {
       toast({
         title: "Signup failed",
-        description: error.message || "An error occurred.",
+        description: error.message || "An error occurred during signup.",
         variant: "destructive",
       });
     } finally {
@@ -100,7 +137,7 @@ const Signup = () => {
               Create your <span className="gradient-text">EV Recharge</span> account
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Sign up to get started with EV charging
+              Join India's leading EV charging network
             </p>
           </div>
         </CardHeader>
@@ -110,13 +147,13 @@ const Signup = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                  First Name
+                  First Name *
                 </label>
                 <Input
                   id="firstName"
                   type="text"
                   required
-                  placeholder="John"
+                  placeholder="Rahul"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
                   disabled={isLoading}
@@ -125,13 +162,13 @@ const Signup = () => {
               
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                  Last Name
+                  Last Name *
                 </label>
                 <Input
                   id="lastName"
                   type="text"
                   required
-                  placeholder="Doe"
+                  placeholder="Sharma"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   disabled={isLoading}
@@ -141,7 +178,7 @@ const Signup = () => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                Email address *
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -152,7 +189,7 @@ const Signup = () => {
                   type="email"
                   required
                   className="pl-10"
-                  placeholder="you@example.com"
+                  placeholder="rahul@example.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   disabled={isLoading}
@@ -162,7 +199,7 @@ const Signup = () => {
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                Phone Number
+                Mobile Number *
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -173,17 +210,19 @@ const Signup = () => {
                   type="tel"
                   required
                   className="pl-10"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="9876543210"
+                  maxLength={10}
                   value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, ''))}
                   disabled={isLoading}
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Enter 10-digit mobile number</p>
             </div>
 
             <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                Address
+                Address *
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -194,7 +233,7 @@ const Signup = () => {
                   type="text"
                   required
                   className="pl-10"
-                  placeholder="123 Main Street"
+                  placeholder="123, MG Road, Sector 15"
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   disabled={isLoading}
@@ -205,13 +244,13 @@ const Signup = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                  City
+                  City *
                 </label>
                 <Input
                   id="city"
                   type="text"
                   required
-                  placeholder="New York"
+                  placeholder="Mumbai"
                   value={formData.city}
                   onChange={(e) => handleInputChange('city', e.target.value)}
                   disabled={isLoading}
@@ -220,33 +259,32 @@ const Signup = () => {
               
               <div>
                 <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                  State
+                  State *
                 </label>
                 <Select onValueChange={(value) => handleInputChange('state', value)} disabled={isLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CA">California</SelectItem>
-                    <SelectItem value="NY">New York</SelectItem>
-                    <SelectItem value="TX">Texas</SelectItem>
-                    <SelectItem value="FL">Florida</SelectItem>
-                    <SelectItem value="WA">Washington</SelectItem>
+                    {indianStates.map((state) => (
+                      <SelectItem key={state} value={state}>{state}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               
               <div>
-                <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
-                  Zip Code
+                <label htmlFor="pinCode" className="block text-sm font-medium text-gray-700">
+                  PIN Code *
                 </label>
                 <Input
-                  id="zipCode"
+                  id="pinCode"
                   type="text"
                   required
-                  placeholder="12345"
-                  value={formData.zipCode}
-                  onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                  placeholder="400001"
+                  maxLength={6}
+                  value={formData.pinCode}
+                  onChange={(e) => handleInputChange('pinCode', e.target.value.replace(/\D/g, ''))}
                   disabled={isLoading}
                 />
               </div>
@@ -254,47 +292,8 @@ const Signup = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="vehicleModel" className="block text-sm font-medium text-gray-700">
-                  Vehicle Model
-                </label>
-                <div className="mt-1 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Car className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <Input
-                    id="vehicleModel"
-                    type="text"
-                    required
-                    className="pl-10"
-                    placeholder="Tesla Model 3"
-                    value={formData.vehicleModel}
-                    onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="vehicleYear" className="block text-sm font-medium text-gray-700">
-                  Vehicle Year
-                </label>
-                <Select onValueChange={(value) => handleInputChange('vehicleYear', value)} disabled={isLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 10 }, (_, i) => 2025 - i).map(year => (
-                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
+                  Password *
                 </label>
                 <div className="mt-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -315,7 +314,7 @@ const Signup = () => {
 
               <div>
                 <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
-                  Confirm Password
+                  Confirm Password *
                 </label>
                 <div className="mt-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -340,7 +339,7 @@ const Signup = () => {
               className="w-full bg-gradient-to-r from-evblue-500 to-evgreen-500 hover:from-evblue-600 hover:to-evgreen-600"
               disabled={isLoading}
             >
-              {isLoading ? "Creating account..." : "Sign up"}
+              {isLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
         </CardContent>
